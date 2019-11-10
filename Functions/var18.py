@@ -18,6 +18,4 @@ class Var18(IVP):
         return x, y
 
     def get_interval(self):
-        if self.x0 <= self.pdscnt <= self.X:
-            return np.arange(self.x0, self.pdscnt, self.h)
-        return np.arange(self.x0, self.X, self.h)
+        return np.arange(self.x0, self.X+self.h, self.h)

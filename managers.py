@@ -28,6 +28,8 @@ class PlotManager:
 
         self.axes = [self.ax_sol, self.ax_err1, self.ax_err2]
 
+        # self.labels = plt.axis([0.05, 0.25, 0.15, 0.05])
+
         self.fig.tight_layout()
 
     def plot_exact(self):
@@ -67,7 +69,7 @@ class WidgetManager:
 
         labels = [str(plot.get_label()) for plot in pm.plots]
         visibility = [plot.get_visible() for plot in pm.plots]
-        self.checkboxes = CheckButtons(plt.axes([0.05, 0.7, 0.15, 0.15], facecolor=color, title='Plots'),
+        self.checkboxes = CheckButtons(plt.axes([0.05, 0.75, 0.15, 0.15], facecolor=color, title='Plots'),
                                        labels, visibility)
 
         def checkbox_update(label):
@@ -81,10 +83,10 @@ class WidgetManager:
 
         # Initialize textboxes
 
-        self.x0 = TextBox(plt.axes([0.05, 0.6, 0.15, 0.05], title='Parameters'), label='x0', initial=str(pm.f.x0))
-        self.y0 = TextBox(plt.axes([0.05, 0.5, 0.15, 0.05]), label='y0', initial=str(pm.f.y0))
-        self.X = TextBox(plt.axes([0.05, 0.4, 0.15, 0.05]), label='X', initial=str(pm.f.X))
-        self.h = TextBox(plt.axes([0.05, 0.3, 0.15, 0.05]), label='h', initial=str(pm.f.h))
+        self.x0 = TextBox(plt.axes([0.05, 0.65, 0.15, 0.05], title='Parameters'), label='x0', initial=str(pm.f.x0))
+        self.y0 = TextBox(plt.axes([0.05, 0.55, 0.15, 0.05]), label='y0', initial=str(pm.f.y0))
+        self.X = TextBox(plt.axes([0.05, 0.45, 0.15, 0.05]), label='X', initial=str(pm.f.X))
+        self.h = TextBox(plt.axes([0.05, 0.35, 0.15, 0.05]), label='h', initial=str(pm.f.h))
 
         self.textboxes = {'x0': self.x0, 'y0': self.y0, 'X' : self.X, 'h': self.h}
 
@@ -157,33 +159,45 @@ class WidgetManager:
 
         # Initialize button
 
-        self.plot_button = Button(plt.axes([0.05, 0.2, 0.15, 0.05]), color=color, label='Plot')
+        self.plot_button = Button(plt.axes([0.05, 0.25, 0.15, 0.05]), color=color, label='Plot')
 
         def plot_click(self):
-            if pm.f.x0 < 0 < pm.f.X:
+            if pm.f.x0 <= 0 <= pm.f.X:
                 print('Interval contains discontinuity for first derivative. Please, use another interval')
                 return
             if pm.f.x0 <= pm.f.pdscnt <= pm.f.X:
                 print('Warning: function has discontinuity at point {0}. Please, change X correspondingly'
                       .format(pm.f.pdscnt))
                 return
+            print()
+            print('Total approximation errors:')
+            print()
             for plot in pm.plots:
-                if plot.get_label() == 'Exact':
-                    x, y = pm.f.solution()
-                else:
-                    x, y = pm.num_methods[plot.get_label()].solution()
-                    x_err = range(len(pm.f.get_interval()))
-                    y_err1 = abs(pm.f.solution()[1] - y)
-                    y_err2 = np.zeros(len(x_err))
-                    for i in x_err[1:]:
-                        y_err2[i] = y_err2[i - 1] + y_err1[i]
-                    pm.errors[plot.get_label()][0].set_data(x_err, y_err1)
-                    pm.errors[plot.get_label()][1].set_data(x_err, y_err2)
-                plot.set_data(x, y)
-                for ax in pm.axes:
-                    ax.relim()
-                    ax.autoscale_view()
-                plt.draw()
+                if plot.get_visible():
+                    flag = True
+                    if plot.get_label() == 'Exact':
+                        x, y = pm.f.solution()
+                    else:
+                        x, y = pm.num_methods[plot.get_label()].solution()
+                        x_err = range(len(pm.f.get_interval()))
+                        y_err1 = abs(pm.f.solution()[1] - y)
+                        y_err2 = np.zeros(len(x_err))
+                        for i in x_err[1:]:
+                            y_err2[i] = y_err2[i - 1] + y_err1[i]
+                        pm.errors[plot.get_label()][0].set_data(x_err, y_err1)
+                        pm.errors[plot.get_label()][1].set_data(x_err, y_err2)
+                        if np.isnan(y_err1[-1]) or y_err1[-1] > pm.f.h:
+                            print(plot.get_label() + ': diverged')
+                            flag = False
+                        else:
+                            print(plot.get_label() + ': ' + str(y_err2[-1]))
+
+                    if flag:
+                        plot.set_data(x, y)
+                    for ax in pm.axes:
+                        ax.relim()
+                        ax.autoscale_view()
+                    plt.draw()
 
         self.plot_button.on_clicked(plot_click)
 

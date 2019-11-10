@@ -12,3 +12,4 @@ class NumericalMethod(ABC):
     @abstractmethod
     def solution(self):
         pass
+

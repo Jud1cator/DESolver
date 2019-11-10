@@ -9,7 +9,7 @@ from managers import PlotManager, WidgetManager
 x0 = 1
 y0 = 0.5
 X = 9
-h = 0.5
+h = 1
 
 ivp = Var18(x0, y0, X, h)
 
@@ -27,4 +27,6 @@ pm.plot_errors()
 
 wm = WidgetManager('lightgoldenrodyellow', pm)
 wm.show()
+plt.text(0.05, 0.3, 'test')
+plt.draw()
 
